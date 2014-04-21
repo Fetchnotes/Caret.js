@@ -1,6 +1,6 @@
 (function() {
   this.Caret = (function() {
-    var cssAttributes, escapeHtmlChar, getCaretPosition, getElementPosition, htmlEscapes, utils;
+    var cssAttributes, escapeHtmlChar, getCaretPosition, getElementPosition, htmlEscapes, lastPosition, split, utils;
 
     cssAttributes = ['overflowY', 'overflowX', 'height', 'width', 'maxHeight', 'minHeight', 'maxWidth', 'minWidth', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'marginTop', 'marginRight', 'marginLeft', 'marginBottom', 'fontFamily', 'fontSize', 'borderStyle', 'borderWidth', 'outline', 'wordWrap', 'lineHeight', 'text-align'];
 
@@ -15,6 +15,8 @@
     escapeHtmlChar = function(chr) {
       return htmlEscapes[chr];
     };
+
+    lastPosition = 0;
 
     utils = {
       sanitize: function(text) {
@@ -162,6 +164,69 @@
         return position;
       }
       throw 'Mode selection required.';
+    };
+
+    Caret.prototype.getCursorPosition = function() {
+      lastPosition = this.element.selectionEnd;
+      return lastPosition;
+    };
+
+    Caret.prototype.setCursorPosition = function(position) {
+      return this.element.setSelectionRange(position, position);
+    };
+
+    Caret.prototype.getCurrentWordParts = function(position) {
+      var cursor, text;
+      text = this.element.val();
+      cursor = position || this.getCursorPosition();
+      return {
+        before: space.before.exec(text.slice(0, cursor)),
+        after: space.after.exec(text.slice(cursor))
+      };
+    };
+
+    Caret.prototype.getCurrentWord = function() {
+      var after, before, result, _ref;
+      _ref = this.getCurrentWordParts(), before = _ref.before, after = _ref.after;
+      result = '';
+      result += (before != null ? before.length : void 0) ? before != null ? before[0] : void 0 : '';
+      return result += (after != null ? after.length : void 0) ? after != null ? after[0] : void 0 : '';
+    };
+
+    Caret.prototype.getCurrentWordIndices = function(position) {
+      var after, before, cursor, _ref;
+      cursor = position || this.getCursorPosition();
+      _ref = this.getCurrentWordParts(cursor), before = _ref.before, after = _ref.after;
+      return {
+        start: cursor - ((before != null ? before.length : void 0) ? before[0].length : 0),
+        end: cursor + ((after != null ? after.length : void 0) ? after[0].length : 0)
+      };
+    };
+
+    Caret.prototype.updateCurrentWord = function() {
+      return this.currentWord = this.getCurrentWord();
+    };
+
+    Caret.prototype.setText = function(text) {
+      return this.element.val(text);
+    };
+
+    split = function(text, start, end) {
+      return {
+        before: text.substr(0, start),
+        after: text.substr(end)
+      };
+    };
+
+    Caret.prototype.replaceCurrentWord = function(text) {
+      var after, before, currentText, indices, newCursor, _ref;
+      currentText = this.element.val();
+      indices = this.getCurrentWordIndices(lastPosition);
+      _ref = split(currentText, indices.start, indices.end), before = _ref.before, after = _ref.after;
+      this.setText(before + text + after);
+      newCursor = before.length + text.length;
+      this.setCursorPosition(newCursor);
+      return this.updateCurrentWord();
     };
 
     return Caret;

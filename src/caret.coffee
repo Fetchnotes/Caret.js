@@ -20,6 +20,7 @@ class @Caret
     escapeHtmlChar = (chr) ->
         htmlEscapes[chr]
 
+    lastPosition = 0
     utils =
 
         sanitize: (text) ->
@@ -169,3 +170,61 @@ class @Caret
             return position
 
         throw 'Mode selection required.'
+
+    getCursorPosition: ->
+        lastPosition = @element.selectionEnd
+        lastPosition
+
+    setCursorPosition: (position) ->
+        @element.setSelectionRange position, position
+
+    getCurrentWordParts: (position) ->
+        text = @element.val()
+        cursor = position or @getCursorPosition()
+
+        return {
+            before: space.before.exec text.slice 0, cursor
+            after:  space.after.exec text.slice cursor
+        }
+
+    getCurrentWord: ->
+        {before, after} = @getCurrentWordParts()
+
+        result = ''
+        result += if before?.length then before?[0] else ''
+        result += if after?.length then after?[0] else ''
+
+    getCurrentWordIndices: (position) ->
+        cursor = position or @getCursorPosition()
+
+        {before, after} = @getCurrentWordParts(cursor)
+
+        return {
+            start: cursor - if before?.length then before[0].length else 0
+            end: cursor + if after?.length then after[0].length else 0
+        }
+
+    updateCurrentWord: ->
+        @currentWord = @getCurrentWord()
+
+    setText: (text) ->
+        @element.val text
+
+    split = (text, start, end) ->
+        return {
+            before: text.substr 0, start
+            after: text.substr end
+        }
+
+    replaceCurrentWord: (text) ->
+        currentText = @element.val()
+        indices = @getCurrentWordIndices lastPosition
+
+        {before, after} = split currentText, indices.start, indices.end
+
+        @setText before + text + after
+
+        newCursor = before.length + text.length
+        @setCursorPosition newCursor
+
+        @updateCurrentWord()
