@@ -1,0 +1,30 @@
+{
+  "name": "Caret.js",
+  "version": "0.0.1",
+  "description": "Utilities for measuring, manipulating, and editing text around the caret.",
+  "main": "index.js",
+  "directories": {
+    "test": "test",
+    "src": "src"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ryngonzalez/Caret.js.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ryngonzalez/Caret.js/issues"
+  },
+  "homepage": "https://github.com/ryngonzalez/Caret.js",
+  "devDependencies": {
+    "coffee-script": "^1.7.1",
+    "gulp": "^3.6.1",
+    "gulp-coffee": "^1.4.2",
+    "gulp-traceur": "^0.4.0",
+    "gulp-util": "^2.2.14"
+  }
+}
