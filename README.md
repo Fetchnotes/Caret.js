@@ -1,2 +1,2 @@
-![Caret.js](http://i.imgur.com/w8fvhs8.png)
+![Caret.js](http://i.imgur.com/i4wBLyO.png)
 Utilities for measuring, manipulating, editing text around the caret.
