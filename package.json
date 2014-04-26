@@ -24,7 +24,6 @@
     "coffee-script": "^1.7.1",
     "gulp": "^3.6.1",
     "gulp-coffee": "^1.4.2",
-    "gulp-traceur": "^0.4.0",
     "gulp-util": "^2.2.14"
   }
 }
