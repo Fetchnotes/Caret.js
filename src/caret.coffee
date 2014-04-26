@@ -1,230 +1,172 @@
 class @Caret
 
-    cssAttributes = [
-        'overflowY', 'overflowX',                                           # Overflows
-        'height', 'width', 'maxHeight', 'minHeight', 'maxWidth', 'minWidth' # Sizing
-        'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',       # Padding
-        'marginTop', 'marginRight', 'marginLeft', 'marginBottom',           # Margin
-        'fontFamily', 'fontSize'                                            # Font
-        'borderStyle', 'borderWidth', 'outline',                            # Border
-        'wordWrap', 'lineHeight', 'text-align'                              # Text
-    ]
+  cssAttributes = [
+    'overflowY', 'overflowX',                                           # Overflows
+    'height', 'width', 'maxHeight', 'minHeight', 'maxWidth', 'minWidth' # Sizing
+    'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',       # Padding
+    'marginTop', 'marginRight', 'marginLeft', 'marginBottom',           # Margin
+    'fontFamily', 'fontSize'                                            # Font
+    'borderStyle', 'borderWidth', 'outline',                            # Border
+    'wordWrap', 'lineHeight', 'text-align'                              # Text
+  ]
 
-    htmlEscapes =
-        '&': '&amp;'
-        '<': '&lt;'
-        '>': '&gt;'
-        '"': '&quot;'
-        "'": '&#39;'
+  htmlEscapes =
+    '&': '&amp;'
+    '<': '&lt;'
+    '>': '&gt;'
+    '"': '&quot;'
+    "'": '&#39;'
 
-    escapeHtmlChar = (chr) ->
-        htmlEscapes[chr]
+  escapeHtmlChar = (chr) ->
+    htmlEscapes[chr]
 
-    lastPosition = 0
-    utils =
+  lastPosition = 0
+  utils =
 
-        sanitize: (text) ->
-            pre = document.createElement 'pre'
-            pre[if pre.textContent? then 'textContent' else 'innerText'] = text
-            return pre.innerHTML
+    sanitize: (text) ->
+      pre = document.createElement 'pre'
+      pre[if pre.textContent? then 'textContent' else 'innerText'] = text
+      return pre.innerHTML
 
-        process: (text) ->
-            text.replace(/[&<>"']/g, escapeHtmlChar)
-                .replace(/(\r\n|\r|\n)/g, '<br/>')
+    process: (text) ->
+      text.replace(/[&<>"']/g, escapeHtmlChar)
+        .replace(/(\r\n|\r|\n)/g, '<br/>')
 
-        getRangePosition: (textRange, docRange, endPoint) ->
-            range = textRange.duplicate()
-            range.setEndPoint endPoint, docRange
-            return range.text.length
+    getRangePosition: (textRange, docRange, endPoint) ->
+      range = textRange.duplicate()
+      range.setEndPoint endPoint, docRange
+      return range.text.length
 
-        getStyle: (element) ->
-            return element.currentStyle or document.defaultView.getComputedStyle(element, "")
+    getStyle: (element) ->
+      return element.currentStyle or document.defaultView.getComputedStyle(element, "")
 
-        cloneStyle: (element) ->
-            css =
-                visibility: 'hidden'
-                position:   'absolute'
-                left: 0
-                top:  0
-                'pointer-events': 'none'
-                'white-space': 'pre-wrap'
-            
-            elementStyle = @getStyle(element)
+    cloneStyle: (element) ->
+      css =
+        visibility: 'hidden'
+        position:   'absolute'
+        left: 0
+        top:  0
+        'pointer-events': 'none'
+        'white-space': 'pre-wrap'
 
-            for attribute in cssAttributes
-                css[attribute] = elementStyle[attribute]
+      elementStyle = @getStyle(element)
 
-            return css
+      for attribute in cssAttributes
+        css[attribute] = elementStyle[attribute]
 
-        clone: (element, updateScroll) ->
-            
-            # Find the clone for the given element
-            name = '_clone'
-            clone = document.getElementById(name)
+      return css
 
-            # Unless the clone already exists, make a new one
-            unless clone?
-                clone = document.createElement 'div'
-                clone.id = name
-                element.parentNode.appendChild clone
+    clone: (element, updateScroll) ->
 
-                cloneStyle = @cloneStyle(element)
-                for key, value of cloneStyle
-                    clone.style[key] = value
-                
-            # Always update the style and positioning
-            if updateScroll
-                clone.scrollLeft = element.scrollLeft
-                clone.scrollTop  = element.scrollTop
+      # Find the clone for the given element
+      name = '_clone'
+      clone = document.getElementById(name)
 
-            return clone
+      # Unless the clone already exists, make a new one
+      unless clone?
+        clone = document.createElement 'div'
+        clone.id = name
+        element.parentNode.appendChild clone
 
-    getCaretPosition = (element) ->
+        cloneStyle = @cloneStyle(element)
+        for key, value of cloneStyle
+          clone.style[key] = value
 
-        position = { start: -1, end: -1 }
+      # Always update the style and positioning
+      if updateScroll
+        clone.scrollLeft = element.scrollLeft
+        clone.scrollTop  = element.scrollTop
 
-        if document.selection
-            
-            docRange  = document.selection.createRange()
-            textRange = document.body.createTextRange()
-            textRange.moveToElementText element
-            
-            position.start = utils.getRangePosition(textRange, docRange, 'EndToStart')
-            position.end   = utils.getRangePosition(textRange, docRange, 'EndToEnd')
-                    
-        else if element.selectionStart or element.selectionStart is '0'
-            
-            position.start = element.selectionStart
-            position.end   = element.selectionEnd
+      return clone
 
-        return position
+  getCaretPosition = (element) ->
 
-    # Get element absolute position
-    getElementPosition = (element) ->
-        
-        # Get scroll amount.
-        html = document.documentElement
-        body = document.body
-        scrollLeft = (body.scrollLeft or html.scrollLeft)
-        scrollTop  = (body.scrollTop  or html.scrollTop)
-        
-        rect   = element.getBoundingClientRect()
+    position = { start: -1, end: -1 }
 
-        left   = rect.left   - html.clientLeft + scrollLeft
-        top    = rect.top    - html.clientTop  + scrollTop
-        right  = rect.right  - html.clientLeft + scrollLeft
-        bottom = rect.bottom - html.clientTop  + scrollTop
+    if document.selection
 
-        position =
-            top:    parseInt(top)
-            right:  parseInt(right)
-            bottom: parseInt(bottom)
-            left:   parseInt(left)
+      docRange  = document.selection.createRange()
+      textRange = document.body.createTextRange()
+      textRange.moveToElementText element
 
-    constructor: (@element, @sanitize = utils.sanitize) ->
+      position.start = utils.getRangePosition(textRange, docRange, 'EndToStart')
+      position.end   = utils.getRangePosition(textRange, docRange, 'EndToEnd')
 
-    position: (mode, debugging = false) ->
+    else if element.selectionStart or element.selectionStart is '0'
 
-        elementPosition = getElementPosition(@element)
-        clone = utils.clone @element, (mode is 'absolute')
+      position.start = element.selectionStart
+      position.end   = element.selectionEnd
 
-        string = @element.value
-        position = getCaretPosition(@element)
+    return position
 
-        text =
-            left:     string.slice(0,              position.start)
-            selected: string.slice(position.start, position.end) or '|'
-            right:    string.slice(position.end,   string.length)
+  # Get element absolute position
+  getElementPosition = (element) ->
 
-        for key, value of text
-            text[key] = @sanitize value
+    # Get scroll amount.
+    html = document.documentElement
+    body = document.body
+    scrollLeft = (body.scrollLeft or html.scrollLeft)
+    scrollTop  = (body.scrollTop  or html.scrollTop)
 
-        # Set text for the clone.
-        innerHTML =  "#{utils.process(text.left)}"
-        innerHTML += "<wbr><span>#{utils.process(text.selected)}</span><wbr>"
-        innerHTML += "#{utils.process(text.right)}"
+    rect   = element.getBoundingClientRect()
 
-        clone.innerHTML = innerHTML
+    left   = rect.left   - html.clientLeft + scrollLeft
+    top    = rect.top    - html.clientTop  + scrollTop
+    right  = rect.right  - html.clientLeft + scrollLeft
+    bottom = rect.bottom - html.clientTop  + scrollTop
 
-        clonePosition = getElementPosition clone
-        caretPosition = getElementPosition clone.getElementsByTagName('span')[0]
+    position =
+      top:    parseInt(top)
+      right:  parseInt(right)
+      bottom: parseInt(bottom)
+      left:   parseInt(left)
 
-        if mode is 'relative'
-            # Returns pixel position relative to top left of the given textarea
-            position =
-                left: caretPosition.left - clonePosition.left
-                top:  caretPosition.top  - clonePosition.top
+  constructor: (@element, @sanitize = utils.sanitize) ->
 
-            @element.parentNode.removeChild clone if debugging
+  position: (mode, debugging = false) ->
 
-            return position
+    elementPosition = getElementPosition(@element)
+    clone = utils.clone @element, (mode is 'absolute')
 
-        if mode is 'absolute'
-            # Returns pixel position relative to top left of the document
-            position =
-                left: position.left + caretPosition.left - clonePosition.left
-                top:  position.top  + caretPosition.top  - clonePosition.top
+    string = @element.value
+    position = getCaretPosition(@element)
 
-            @element.parentNode.removeChild clone if debugging
+    text =
+      left:     string.slice(0,              position.start)
+      selected: string.slice(position.start, position.end) or '|'
+      right:    string.slice(position.end,   string.length)
 
-            return position
+    for key, value of text
+      text[key] = @sanitize value
 
-        throw 'Mode selection required.'
+    # Set text for the clone.
+    innerHTML =  "#{utils.process(text.left)}"
+    innerHTML += "<wbr><span>#{utils.process(text.selected)}</span><wbr>"
+    innerHTML += "#{utils.process(text.right)}"
 
-    getCursorPosition: ->
-        lastPosition = @element.selectionEnd
-        lastPosition
+    clone.innerHTML = innerHTML
 
-    setCursorPosition: (position) ->
-        @element.setSelectionRange position, position
+    clonePosition = getElementPosition clone
+    caretPosition = getElementPosition clone.getElementsByTagName('span')[0]
 
-    getCurrentWordParts: (position) ->
-        text = @element.val()
-        cursor = position or @getCursorPosition()
+    if mode is 'relative'
+      # Returns pixel position relative to top left of the given textarea
+      position =
+        left: caretPosition.left - clonePosition.left
+        top:  caretPosition.top  - clonePosition.top
 
-        return {
-            before: space.before.exec text.slice 0, cursor
-            after:  space.after.exec text.slice cursor
-        }
+      @element.parentNode.removeChild clone if debugging
 
-    getCurrentWord: ->
-        {before, after} = @getCurrentWordParts()
+      return position
 
-        result = ''
-        result += if before?.length then before?[0] else ''
-        result += if after?.length then after?[0] else ''
+    if mode is 'absolute'
+      # Returns pixel position relative to top left of the document
+      position =
+        left: position.left + caretPosition.left - clonePosition.left
+        top:  position.top  + caretPosition.top  - clonePosition.top
 
-    getCurrentWordIndices: (position) ->
-        cursor = position or @getCursorPosition()
+      @element.parentNode.removeChild clone if debugging
 
-        {before, after} = @getCurrentWordParts(cursor)
+      return position
 
-        return {
-            start: cursor - if before?.length then before[0].length else 0
-            end: cursor + if after?.length then after[0].length else 0
-        }
-
-    updateCurrentWord: ->
-        @currentWord = @getCurrentWord()
-
-    setText: (text) ->
-        @element.val text
-
-    split = (text, start, end) ->
-        return {
-            before: text.substr 0, start
-            after: text.substr end
-        }
-
-    replaceCurrentWord: (text) ->
-        currentText = @element.val()
-        indices = @getCurrentWordIndices lastPosition
-
-        {before, after} = split currentText, indices.start, indices.end
-
-        @setText before + text + after
-
-        newCursor = before.length + text.length
-        @setCursorPosition newCursor
-
-        @updateCurrentWord()
+    throw 'Mode selection required.'
