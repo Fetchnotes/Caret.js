@@ -19,7 +19,7 @@
   "bugs": {
     "url": "https://github.com/ryngonzalez/Caret.js/issues"
   },
-  "homepage": "https://github.com/ryngonzalez/Caret.js",
+  "homepage": "https://github.com/Fetchnotes/Caret.js",
   "devDependencies": {
     "coffee-script": "^1.7.1",
     "gulp": "^3.6.1",
