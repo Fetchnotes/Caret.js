@@ -20,7 +20,6 @@ class @Caret
   escapeHtmlChar = (chr) ->
     htmlEscapes[chr]
 
-  lastPosition = 0
   utils =
 
     sanitize: (text) ->
@@ -92,8 +91,7 @@ class @Caret
       position.start = utils.getRangePosition(textRange, docRange, 'EndToStart')
       position.end   = utils.getRangePosition(textRange, docRange, 'EndToEnd')
 
-    else if element.selectionStart or element.selectionStart is '0'
-
+    else if element.selectionStart?
       position.start = element.selectionStart
       position.end   = element.selectionEnd
 
@@ -121,7 +119,9 @@ class @Caret
       bottom: parseInt(bottom)
       left:   parseInt(left)
 
-  constructor: (@element, @sanitize = utils.sanitize) ->
+  constructor: (@element, @sanitize = utils.sanitize, @filter) ->
+    @filter or= (content) ->
+      content
 
   position: (mode, debugging = false) ->
 
@@ -133,7 +133,7 @@ class @Caret
 
     text =
       left:     string.slice(0,              position.start)
-      selected: string.slice(position.start, position.end) or '|'
+      selected: string.slice(position.start, position.end)
       right:    string.slice(position.end,   string.length)
 
     for key, value of text
@@ -144,7 +144,7 @@ class @Caret
     innerHTML += "<wbr><span>#{utils.process(text.selected)}</span><wbr>"
     innerHTML += "#{utils.process(text.right)}"
 
-    clone.innerHTML = innerHTML
+    clone.innerHTML = @filter innerHTML
 
     clonePosition = getElementPosition clone
     caretPosition = getElementPosition clone.getElementsByTagName('span')[0]
